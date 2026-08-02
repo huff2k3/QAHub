@@ -34,7 +34,8 @@ const CONFIG = Object.freeze({
   },
 
   STATUS: {
-    DEFAULT: 'New'
+    DEFAULT: 'New',
+    CLOSED: 'Closed'
   },
 
   TEMPLATES: {
@@ -49,7 +50,7 @@ Observed Behavior:`,
 2.
 3.
 
-Actual Result: 
+Actual Result:
 Expected Result: `
   },
 
@@ -74,90 +75,107 @@ Expected Result: `
 
   }),
 
+  VALIDATION: Object.freeze({
+
+    STATUS: {
+      issueColumn: 'B',
+      listColumn: 'A'
+    },
+
+    SEVERITY: {
+      issueColumn: 'D',
+      listColumn: 'B'
+    },
+
+    PRIORITY: {
+      issueColumn: 'C',
+      listColumn: 'C'
+    },
+
+    REPRODUCIBILITY: {
+      issueColumn: 'H',
+      listColumn: 'D'
+    }
+
+  }),
+
+  HEADERS: Object.freeze({
+
+    BUG_ID: 'Bug ID',
+    STATUS: 'Status',
+    PRIORITY: 'Priority',
+    SEVERITY: 'Severity',
+    TITLE: 'Title',
+    DESCRIPTION: 'Description',
+    STEPS: 'Steps to Reproduce',
+    REPRODUCIBILITY: 'Reproducibility',
+    CREATOR: 'Creator',
+    ASSIGNED_TO: 'Assigned To',
+    CREATED_DATE: 'Created Date',
+    LAST_UPDATED: 'Last Updated',
+    FIXED_IN_BUILD: 'Fixed in Build',
+    KEYWORDS: 'Keywords',
+    SCREENSHOT: 'Screenshot',
+    NOTES: 'Notes'
+
+  }),
+
+  // Reference values seeded onto the Lists sheet and used by ValidationService
+  // for Issues-sheet dropdowns. `column` must match the corresponding
+  // `listColumn` in CONFIG.VALIDATION above.
+  LISTS: Object.freeze({
+
+    STATUS: {
+      column: 'A',
+      header: 'Status',
+      values: Object.freeze([
+        'New',
+        'In Progress',
+        'Need More Info',
+        'Ready for Testing',
+        'Closed'
+      ])
+    },
+
+    SEVERITY: {
+      column: 'B',
+      header: 'Severity',
+      values: Object.freeze([
+        'Blocking',
+        'Critical',
+        'High',
+        'Medium',
+        'Low'
+      ])
+    },
+
+    PRIORITY: {
+      column: 'C',
+      header: 'Priority',
+      values: Object.freeze([
+        'P1',
+        'P2',
+        'P3',
+        'P4'
+      ])
+    },
+
+    REPRODUCIBILITY: {
+      column: 'D',
+      header: 'Reproducibility',
+      values: Object.freeze([
+        'Once',
+        '25%',
+        '50%',
+        '75%',
+        'Always'
+      ])
+    }
+
+  }),
+
   HEADER_ROW: 1,
 
   FIRST_DATA_ROW: 2
 
 });
-
-
-/**
- * Returns the Issues sheet.
- */
-function getIssuesSheet() {
-  return SpreadsheetApp
-    .getActiveSpreadsheet()
-    .getSheetByName(CONFIG.SHEETS.ISSUES);
-}
-
-
-/**
- * Returns script properties.
- */
-function getScriptProperties() {
-  return PropertiesService.getScriptProperties();
-}
-
-
-/**
- * Returns the next Bug ID.
- *
- * Uses LockService to ensure multiple users
- * cannot generate duplicate IDs.
- */
-function getNextBugId() {
-
-  const lock = LockService.getScriptLock();
-
-  lock.waitLock(30000);
-
-  try {
-
-    const properties = getScriptProperties();
-
-    let nextId = Number(
-      properties.getProperty(CONFIG.SCRIPT_PROPERTIES.NEXT_BUG_ID)
-    );
-
-    if (!nextId || isNaN(nextId)) {
-      nextId = 1;
-    }
-
-    properties.setProperty(
-      CONFIG.SCRIPT_PROPERTIES.NEXT_BUG_ID,
-      String(nextId + 1)
-    );
-
-    return nextId;
-
-  } finally {
-
-    lock.releaseLock();
-
-  }
-
-}
-
-VALIDATION: Object.freeze({
-
-  STATUS: {
-    issueColumn: 'B',
-    listColumn: 'A'
-  },
-
-  SEVERITY: {
-    issueColumn: 'D',
-    listColumn: 'B'
-  },
-
-  PRIORITY: {
-    issueColumn: 'C',
-    listColumn: 'C'
-  },
-
-  REPRODUCIBILITY: {
-    issueColumn: 'H',
-    listColumn: 'D'
-  }
-
-}),

@@ -67,7 +67,7 @@ const ValidationService = (() => {
       .build();
 
     const issueColumn =
-      columnLetterToNumber(issueColumnLetter);
+      Utils.columnLetterToNumber(issueColumnLetter);
 
     issueSheet
       .getRange(
@@ -77,21 +77,6 @@ const ValidationService = (() => {
         1
       )
       .setDataValidation(rule);
-
-  }
-
-  function columnLetterToNumber(letter) {
-
-    let column = 0;
-
-    for (let i = 0; i < letter.length; i++) {
-
-      column *= 26;
-      column += letter.charCodeAt(i) - 64;
-
-    }
-
-    return column;
 
   }
 
