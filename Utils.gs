@@ -233,6 +233,31 @@ const Utils = (() => {
   }
 
   /**
+   * Whole days between two dates (referenceDate - date), floored.
+   *
+   * @param {Date} date
+   * @param {Date} referenceDate
+   * @returns {number}
+   */
+  function daysSince(date, referenceDate) {
+    return Math.floor((referenceDate - date) / (24 * 60 * 60 * 1000));
+  }
+
+  /**
+   * Formats a date as "yyyy-MM-dd", independent of spreadsheet locale.
+   *
+   * @param {Date} date
+   * @returns {string}
+   */
+  function formatDateLabel(date) {
+
+    const pad = n => String(n).padStart(2, '0');
+
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+
+  }
+
+  /**
    * Converts a spreadsheet column letter (e.g. "A", "H") to its 1-based
    * column number.
    *
@@ -281,6 +306,10 @@ const Utils = (() => {
     focusTitle,
 
     touch,
+
+    daysSince,
+
+    formatDateLabel,
 
     columnLetterToNumber
 

@@ -111,6 +111,7 @@ function createUi(promptResponse = { button: 'CANCEL', text: '' }) {
 function createSpreadsheetApp(sheetsByName, options = {}) {
 
   const spreadsheet = {
+    getId: jest.fn(() => options.spreadsheetId || 'spreadsheet-id'),
     getSheetByName: jest.fn(sheetName => sheetsByName[sheetName] || null),
     insertSheet: jest.fn(sheetName => {
       const sheet = createSheet(sheetName);
@@ -127,6 +128,89 @@ function createSpreadsheetApp(sheetsByName, options = {}) {
     getUi: jest.fn(() => ui)
   };
 
+}
+
+/**
+ * Fakes DocumentApp: create() returns a Doc whose Body records every
+ * appendParagraph/appendTable call, enough to assert on report structure
+ * without a real Google Doc.
+ */
+function createDocumentApp() {
+
+  const created = [];
+
+  const documentApp = {
+    create: jest.fn(name => {
+
+      const paragraphs = [];
+
+      const body = {
+        appendParagraph: jest.fn(text => {
+          const paragraph = { text, heading: null };
+          paragraph.setHeading = jest.fn(heading => { paragraph.heading = heading; return paragraph; });
+          paragraphs.push(paragraph);
+          return paragraph;
+        }),
+        appendTable: jest.fn(cells => { body.tables = body.tables || []; body.tables.push(cells); return {}; }),
+        paragraphs
+      };
+
+      const doc = {
+        name,
+        getId: jest.fn(() => 'doc-id'),
+        getUrl: jest.fn(() => `https://docs.google.com/document/d/doc-id/edit`),
+        getBody: jest.fn(() => body),
+        saveAndClose: jest.fn(),
+        body
+      };
+
+      created.push(doc);
+
+      return doc;
+
+    }),
+    ParagraphHeading: { TITLE: 'TITLE', HEADING1: 'HEADING1', HEADING2: 'HEADING2' },
+    created
+  };
+
+  return documentApp;
+
+}
+
+/**
+ * Fakes DriveApp: getFileById(id) looks up from a caller-provided map, so a
+ * test can register both the spreadsheet's Drive file (with a parent
+ * folder, or not) and the report Doc's Drive file.
+ */
+function createDriveApp(filesById = {}) {
+
+  const rootFolder = { removeFile: jest.fn() };
+
+  return {
+    getFileById: jest.fn(id => filesById[id] || { getParents: jest.fn(() => ({ hasNext: () => false })) }),
+    getRootFolder: jest.fn(() => rootFolder),
+    rootFolder
+  };
+
+}
+
+/**
+ * A fake Drive file. Pass a folder (from createDriveFolder()) if it should
+ * report having a parent; omit for a file at Drive's root.
+ */
+function createDriveFile(parentFolder) {
+
+  return {
+    getParents: jest.fn(() => ({
+      hasNext: jest.fn(() => !!parentFolder),
+      next: jest.fn(() => parentFolder)
+    }))
+  };
+
+}
+
+function createDriveFolder() {
+  return { addFile: jest.fn() };
 }
 
 function createPropertiesService(initial = {}) {
@@ -171,5 +255,9 @@ module.exports = {
   createPropertiesService,
   createLockService,
   createSession,
-  createCharts
+  createCharts,
+  createDocumentApp,
+  createDriveApp,
+  createDriveFile,
+  createDriveFolder
 };
