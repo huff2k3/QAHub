@@ -15,6 +15,7 @@ function createRange() {
     'setVerticalAlignment',
     'setHorizontalAlignment',
     'setFontWeight',
+    'setFontSize',
     'setDataValidation',
     'createFilter'
   ].forEach(method => {
@@ -24,6 +25,20 @@ function createRange() {
   range.getValues = jest.fn(() => []);
 
   return range;
+
+}
+
+function createChartBuilder() {
+
+  const builder = {};
+
+  builder.setChartType = jest.fn(() => builder);
+  builder.addRange = jest.fn(() => builder);
+  builder.setPosition = jest.fn(() => builder);
+  builder.setOption = jest.fn(() => builder);
+  builder.build = jest.fn(() => ({ __chart: true }));
+
+  return builder;
 
 }
 
@@ -38,6 +53,7 @@ function createSheet(name, overrides = {}) {
     getRange: jest.fn(() => sharedRange),
     insertRowBefore: jest.fn(),
     deleteRow: jest.fn(),
+    clear: jest.fn(),
     setActiveRange: jest.fn(),
     setActiveSelection: jest.fn(),
     setFrozenRows: jest.fn(),
@@ -46,6 +62,10 @@ function createSheet(name, overrides = {}) {
     getLastRow: jest.fn(() => 1),
     getMaxRows: jest.fn(() => 1000),
     getLastColumn: jest.fn(() => 16),
+    getCharts: jest.fn(() => []),
+    removeChart: jest.fn(),
+    newChart: jest.fn(() => createChartBuilder()),
+    insertChart: jest.fn(),
     ...overrides
   };
 
@@ -61,6 +81,12 @@ function createDataValidationBuilder() {
 
   return builder;
 
+}
+
+function createCharts() {
+  return {
+    ChartType: { COLUMN: 'COLUMN', PIE: 'PIE', LINE: 'LINE' }
+  };
 }
 
 function createUi(promptResponse = { button: 'CANCEL', text: '' }) {
@@ -144,5 +170,6 @@ module.exports = {
   createSpreadsheetApp,
   createPropertiesService,
   createLockService,
-  createSession
+  createSession,
+  createCharts
 };
