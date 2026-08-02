@@ -32,13 +32,22 @@ const CONFIG = Object.freeze({
     NEW_ISSUE: 'Add New Issue',
     SEARCH: 'Search',
     ARCHIVE: 'Archive Closed',
-    DASHBOARD: 'Refresh Dashboard'
+    DASHBOARD: 'Refresh Dashboard',
+    REPORT: 'Generate Report'
   },
 
   DASHBOARD: {
     // An open (non-Closed) issue whose Last Updated is at least this many
     // days old shows up in the dashboard's stale-issues section.
     STALE_DAYS: 14
+  },
+
+  REPORT: {
+    // How far back "found" (Created Date) / "fixed" (Closed Date) look.
+    LOOKBACK_DAYS: 7,
+    // Severities at or above this rank in LISTS.SEVERITY.values count as
+    // "critical or higher" for the report's critical-issue sections.
+    CRITICAL_THRESHOLD: 'Critical'
   },
 
   STATUS: {
