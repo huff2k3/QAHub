@@ -195,6 +195,28 @@ const Utils = (() => {
 
   }
 
+  /**
+   * Converts a spreadsheet column letter (e.g. "A", "H") to its 1-based
+   * column number.
+   *
+   * @param {string} letter
+   * @returns {number}
+   */
+  function columnLetterToNumber(letter) {
+
+    let column = 0;
+
+    for (let i = 0; i < letter.length; i++) {
+
+      column *= 26;
+      column += letter.charCodeAt(i) - 64;
+
+    }
+
+    return column;
+
+  }
+
   return {
 
     spreadsheet,
@@ -217,7 +239,9 @@ const Utils = (() => {
 
     focusTitle,
 
-    touch
+    touch,
+
+    columnLetterToNumber
 
   };
 
