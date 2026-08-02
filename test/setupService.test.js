@@ -23,7 +23,7 @@ function setup(existingSheets = {}) {
 
 describe('SetupService.initializeWorkbook on a brand-new spreadsheet', () => {
 
-  test('creates the Issues, Archive, Lists, and Settings sheets', () => {
+  test('creates the Issues, Archive, Lists, Settings, and Dashboard sheets', () => {
 
     const { SetupService, sheetsByName, CONFIG } = setup();
 
@@ -33,6 +33,7 @@ describe('SetupService.initializeWorkbook on a brand-new spreadsheet', () => {
     expect(sheetsByName[CONFIG.SHEETS.ARCHIVE]).toBeDefined();
     expect(sheetsByName[CONFIG.SHEETS.LISTS]).toBeDefined();
     expect(sheetsByName[CONFIG.SHEETS.SETTINGS]).toBeDefined();
+    expect(sheetsByName[CONFIG.SHEETS.DASHBOARD]).toBeDefined();
 
   });
 

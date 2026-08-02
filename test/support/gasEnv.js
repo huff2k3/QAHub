@@ -14,6 +14,7 @@ const FILES = [
   'SetupService.gs',
   'ArchiveService.gs',
   'SearchService.gs',
+  'DashboardService.gs',
   'TriggerService.gs',
   'Code.gs'
 ];
@@ -26,10 +27,12 @@ const EXPORTED_NAMES = [
   'ValidationService',
   'ArchiveService',
   'SearchService',
+  'DashboardService',
   'onOpen',
   'addNewIssue',
   'showSearch',
   'archiveClosed',
+  'refreshDashboard',
   'initializeWorkbook',
   'onEdit',
   'updateLastUpdated'

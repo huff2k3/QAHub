@@ -68,19 +68,7 @@ const SearchService = (() => {
    */
   function findMatches(term) {
 
-    const sheet = Utils.getIssuesSheet();
-
-    const lastRow = sheet.getLastRow();
-
-    if (lastRow < CONFIG.FIRST_DATA_ROW) {
-      return [];
-    }
-
-    const totalColumns = Object.keys(CONFIG.COLUMNS).length;
-
-    const rows = sheet
-      .getRange(CONFIG.FIRST_DATA_ROW, 1, lastRow - CONFIG.FIRST_DATA_ROW + 1, totalColumns)
-      .getValues();
+    const rows = Utils.readDataRows(Utils.getIssuesSheet());
 
     const needle = term.toLowerCase();
 

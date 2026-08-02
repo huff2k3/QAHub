@@ -21,6 +21,8 @@ function onOpen() {
     .addSeparator()
     .addItem(CONFIG.MENU.SEARCH, 'showSearch')
     .addItem(CONFIG.MENU.ARCHIVE, 'archiveClosed')
+    .addSeparator()
+    .addItem(CONFIG.MENU.DASHBOARD, 'refreshDashboard')
     .addToUi();
 
 }
@@ -89,6 +91,27 @@ function archiveClosed() {
 
     SpreadsheetApp.getUi().alert(
       'Unable to archive closed issues.\n\n' + error.message
+    );
+
+    console.error(error);
+
+  }
+
+}
+
+/**
+ * Rebuilds the Dashboard sheet's breakdowns, throughput, and stale-issue list.
+ */
+function refreshDashboard() {
+
+  try {
+
+    DashboardService.refresh();
+
+  } catch (error) {
+
+    SpreadsheetApp.getUi().alert(
+      'Unable to refresh the dashboard.\n\n' + error.message
     );
 
     console.error(error);

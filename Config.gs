@@ -19,7 +19,8 @@ const CONFIG = Object.freeze({
     ISSUES: 'Issues',
     ARCHIVE: 'Archive',
     LISTS: 'Lists',
-    SETTINGS: 'Settings'
+    SETTINGS: 'Settings',
+    DASHBOARD: 'Dashboard'
   },
 
   SCRIPT_PROPERTIES: {
@@ -30,7 +31,14 @@ const CONFIG = Object.freeze({
     TITLE: 'QA Tools',
     NEW_ISSUE: 'Add New Issue',
     SEARCH: 'Search',
-    ARCHIVE: 'Archive Closed'
+    ARCHIVE: 'Archive Closed',
+    DASHBOARD: 'Refresh Dashboard'
+  },
+
+  DASHBOARD: {
+    // An open (non-Closed) issue whose Last Updated is at least this many
+    // days old shows up in the dashboard's stale-issues section.
+    STALE_DAYS: 14
   },
 
   STATUS: {

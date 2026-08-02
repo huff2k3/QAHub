@@ -18,17 +18,7 @@ const ArchiveService = (() => {
     const issuesSheet = Utils.getIssuesSheet();
     const archiveSheet = Utils.getArchiveSheet();
 
-    const lastRow = issuesSheet.getLastRow();
-
-    if (lastRow < CONFIG.FIRST_DATA_ROW) {
-      return 0;
-    }
-
-    const totalColumns = Object.keys(CONFIG.COLUMNS).length;
-
-    const rows = issuesSheet
-      .getRange(CONFIG.FIRST_DATA_ROW, 1, lastRow - CONFIG.FIRST_DATA_ROW + 1, totalColumns)
-      .getValues();
+    const rows = Utils.readDataRows(issuesSheet);
 
     let archivedCount = 0;
 

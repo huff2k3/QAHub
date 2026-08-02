@@ -56,6 +56,39 @@ const Utils = (() => {
   }
 
   /**
+   * Returns the named sheet, creating it (blank) if it doesn't exist yet.
+   *
+   * @param {string} sheetName
+   * @returns {Sheet}
+   */
+  function ensureSheet(sheetName) {
+    return spreadsheet().getSheetByName(sheetName) || spreadsheet().insertSheet(sheetName);
+  }
+
+  /**
+   * Returns every data row (below the header) on a sheet, as raw values
+   * across the full CONFIG.COLUMNS width. Empty array if there's no data.
+   *
+   * @param {Sheet} sheet
+   * @returns {Array<Array>}
+   */
+  function readDataRows(sheet) {
+
+    const lastRow = sheet.getLastRow();
+
+    if (lastRow < CONFIG.FIRST_DATA_ROW) {
+      return [];
+    }
+
+    const totalColumns = Object.keys(CONFIG.COLUMNS).length;
+
+    return sheet
+      .getRange(CONFIG.FIRST_DATA_ROW, 1, lastRow - CONFIG.FIRST_DATA_ROW + 1, totalColumns)
+      .getValues();
+
+  }
+
+  /**
    * Returns script properties.
    *
    * @returns {Properties}
@@ -226,6 +259,10 @@ const Utils = (() => {
     getIssuesSheet,
 
     getArchiveSheet,
+
+    ensureSheet,
+
+    readDataRows,
 
     scriptProperties,
 
