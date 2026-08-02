@@ -46,7 +46,7 @@ describe('SetupService.initializeWorkbook on a brand-new spreadsheet', () => {
     const issuesSheet = sheetsByName[CONFIG.SHEETS.ISSUES];
 
     const headerCall = issuesSheet.getRange.mock.calls.find(
-      call => call[0] === CONFIG.HEADER_ROW && call[1] === 1 && call[3] === 16
+      call => call[0] === CONFIG.HEADER_ROW && call[1] === 1 && call[3] === Object.keys(CONFIG.COLUMNS).length
     );
 
     expect(headerCall).toBeDefined();
@@ -72,7 +72,7 @@ describe('SetupService.initializeWorkbook on a brand-new spreadsheet', () => {
     const archiveSheet = sheetsByName[CONFIG.SHEETS.ARCHIVE];
 
     const headerCall = archiveSheet.getRange.mock.calls.find(
-      call => call[0] === CONFIG.HEADER_ROW && call[1] === 1 && call[3] === 16
+      call => call[0] === CONFIG.HEADER_ROW && call[1] === 1 && call[3] === Object.keys(CONFIG.COLUMNS).length
     );
 
     expect(headerCall).toBeDefined();

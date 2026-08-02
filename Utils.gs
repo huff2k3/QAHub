@@ -152,6 +152,10 @@ const Utils = (() => {
       .getRange(row, CONFIG.COLUMNS.LAST_UPDATED)
       .setNumberFormat("M/d/yyyy h:mm AM/PM");
 
+    sheet
+      .getRange(row, CONFIG.COLUMNS.CLOSED_DATE)
+      .setNumberFormat("M/d/yyyy h:mm AM/PM");
+
   }
 
   /**

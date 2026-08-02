@@ -31,6 +31,10 @@ function onEdit(e) {
     return;
   }
 
+  if (column === CONFIG.COLUMNS.STATUS) {
+    updateClosedDate(sheet, row, e.value);
+  }
+
   updateLastUpdated(sheet, row);
 
 }
@@ -47,5 +51,22 @@ function updateLastUpdated(sheet, row) {
       CONFIG.COLUMNS.LAST_UPDATED
     )
     .setValue(new Date());
+
+}
+
+
+/**
+ * Stamps Closed Date when Status is set to Closed, clears it otherwise
+ * (e.g. an issue gets reopened) so it only ever reflects the current
+ * closure, not a stale one.
+ */
+function updateClosedDate(sheet, row, newStatus) {
+
+  sheet
+    .getRange(
+      row,
+      CONFIG.COLUMNS.CLOSED_DATE
+    )
+    .setValue(newStatus === CONFIG.STATUS.CLOSED ? new Date() : '');
 
 }
