@@ -97,7 +97,12 @@ already: duplicate globals in Config.gs, a private `columnLetterToNumber` in `Va
   `Issues` and `Archive`, seeds `CONFIG.LISTS` values onto `Lists`, then formats (freeze/filter/bold header/column
   widths) and applies `ValidationService.initialize()`. Re-running it is safe for issue data (never touches data
   rows) but does reset headers and Lists values back to the `CONFIG` defaults, clobbering manual edits to those
-  specifically — that's intentional, not a bug.
+  specifically — that's intentional, not a bug. **This is also the mechanism that picks up new columns after a
+  `CONFIG.COLUMNS` change** — nothing in the sheet updates itself just because the script was redeployed; someone
+  has to re-run Initialize Workbook. `enableFilters()` specifically removes and recreates any existing filter
+  every time (a filter's range doesn't grow on its own when a column is added — this was a real bug: after adding
+  `CLOSED_DATE`, the new column had no header styling/filter arrow/border until this got fixed to always
+  recreate rather than only `if (!sheet.getFilter())`).
 - `ValidationService` — builds Sheets data-validation rules on the Issues sheet by reading allowed values off a
   separate `Lists` sheet (`CONFIG.VALIDATION` maps each validated Issues column letter to its source column
   letter on `Lists`, which must line up with `CONFIG.LISTS.*.column`).
