@@ -23,14 +23,15 @@ function setup() {
 
 }
 
-function makeEvent(sheet, row, column) {
+function makeEvent(sheet, row, column, value) {
 
   return {
     range: {
       getSheet: () => sheet,
       getRow: () => row,
       getColumn: () => column
-    }
+    },
+    value
   };
 
 }
@@ -90,6 +91,53 @@ describe('onEdit', () => {
     const [stamped] = range.setValue.mock.calls[0];
 
     expect(Object.prototype.toString.call(stamped)).toBe('[object Date]');
+
+  });
+
+  test('stamps Closed Date when Status is edited to Closed', () => {
+
+    const { onEdit, issuesSheet, CONFIG } = setup();
+
+    onEdit(makeEvent(issuesSheet, CONFIG.FIRST_DATA_ROW, CONFIG.COLUMNS.STATUS, CONFIG.STATUS.CLOSED));
+
+    const callIndex = issuesSheet.getRange.mock.calls.findIndex(
+      call => call[0] === CONFIG.FIRST_DATA_ROW && call[1] === CONFIG.COLUMNS.CLOSED_DATE
+    );
+
+    expect(callIndex).toBeGreaterThan(-1);
+
+    const [stamped] = issuesSheet.range.setValue.mock.calls[callIndex];
+
+    expect(Object.prototype.toString.call(stamped)).toBe('[object Date]');
+
+  });
+
+  test('clears Closed Date when Status is edited away from Closed', () => {
+
+    const { onEdit, issuesSheet, CONFIG } = setup();
+
+    onEdit(makeEvent(issuesSheet, CONFIG.FIRST_DATA_ROW, CONFIG.COLUMNS.STATUS, 'In Progress'));
+
+    const callIndex = issuesSheet.getRange.mock.calls.findIndex(
+      call => call[0] === CONFIG.FIRST_DATA_ROW && call[1] === CONFIG.COLUMNS.CLOSED_DATE
+    );
+
+    expect(callIndex).toBeGreaterThan(-1);
+    expect(issuesSheet.range.setValue.mock.calls[callIndex]).toEqual(['']);
+
+  });
+
+  test('does not touch Closed Date when a non-Status column is edited', () => {
+
+    const { onEdit, issuesSheet, CONFIG } = setup();
+
+    onEdit(makeEvent(issuesSheet, CONFIG.FIRST_DATA_ROW, CONFIG.COLUMNS.TITLE));
+
+    const callIndex = issuesSheet.getRange.mock.calls.findIndex(
+      call => call[1] === CONFIG.COLUMNS.CLOSED_DATE
+    );
+
+    expect(callIndex).toBe(-1);
 
   });
 

@@ -89,7 +89,9 @@ already: duplicate globals in Config.gs, a private `columnLetterToNumber` in `Va
   uncaught.
 - `TriggerService.gs` — `onEdit(e)` is a simple trigger that stamps `LAST_UPDATED` whenever a cell in the
   `Issues` sheet (at or below `CONFIG.FIRST_DATA_ROW`) is edited, ignoring edits to the `LAST_UPDATED` column
-  itself to avoid recursive updates.
+  itself to avoid recursive updates. It also stamps `CLOSED_DATE` when the edited column is `STATUS` and the new
+  value (`e.value`) is `CONFIG.STATUS.CLOSED`, and clears `CLOSED_DATE` on any other Status value (so reopening an
+  issue doesn't leave a stale closed date behind).
 - `SetupService.initializeWorkbook()` — builds a workbook from scratch: creates the `Issues`/`Archive`/`Lists`/
   `Settings` sheets if they don't already exist (`ensureSheet`), writes the `CONFIG.HEADERS` header row onto both
   `Issues` and `Archive`, seeds `CONFIG.LISTS` values onto `Lists`, then formats (freeze/filter/bold header/column
@@ -111,9 +113,9 @@ already: duplicate globals in Config.gs, a private `columnLetterToNumber` in `Va
   Severity, via `countByColumn`), a weekly throughput table+chart (issues created vs. closed, via `countByWeek`),
   and a stale-issues list (open, non-Closed issues whose `LAST_UPDATED` is `CONFIG.DASHBOARD.STALE_DAYS`+ old).
   Tables stack in columns A-B; charts stack independently in column E (`CHART_ROW_SPAN` apart) so a tall chart
-  never overlaps the next table — the two layouts don't share a row counter. "Closed date" isn't a real field
-  QAHub tracks, so weekly throughput approximates it as an archived issue's `LAST_UPDATED` (whatever it was when
-  `ArchiveService` moved the row) — accurate as long as issues get archived reasonably soon after closing.
+  never overlaps the next table — the two layouts don't share a row counter. Weekly throughput's "closed" count
+  comes from `CLOSED_DATE` (see `TriggerService` above); archived issues that predate that column just don't
+  count toward "closed" since there's no data to infer it from.
 
 **Row shape**: A new issue is a fixed-width row built by writing directly into a sparse `values[]` array indexed
 by `CONFIG.COLUMNS.* - 1` (see `IssueService.createIssue`). When adding a column, update `CONFIG.COLUMNS` —

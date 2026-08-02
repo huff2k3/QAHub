@@ -40,8 +40,10 @@ describe('IssueService.createIssue', () => {
 
     IssueService.createIssue();
 
+    const totalColumns = Object.keys(CONFIG.COLUMNS).length;
+
     const writeCall = issuesSheet.getRange.mock.calls.find(
-      call => call[0] === CONFIG.FIRST_DATA_ROW && call[1] === 1 && call[3] === 16
+      call => call[0] === CONFIG.FIRST_DATA_ROW && call[1] === 1 && call[3] === totalColumns
     );
 
     expect(writeCall).toBeDefined();

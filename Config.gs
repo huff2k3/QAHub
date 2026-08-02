@@ -79,7 +79,8 @@ Expected Result: `
     FIXED_IN_BUILD: 13,
     KEYWORDS: 14,
     SCREENSHOT: 15,
-    NOTES: 16
+    NOTES: 16,
+    CLOSED_DATE: 17
 
   }),
 
@@ -124,7 +125,8 @@ Expected Result: `
     FIXED_IN_BUILD: 'Fixed in Build',
     KEYWORDS: 'Keywords',
     SCREENSHOT: 'Screenshot',
-    NOTES: 'Notes'
+    NOTES: 'Notes',
+    CLOSED_DATE: 'Closed Date'
 
   }),
 
