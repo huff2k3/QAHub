@@ -54,8 +54,8 @@ inside the loaded `.gs` code is not `instanceof` the outer test file's `Date`. C
 ## Architecture
 
 **Module pattern**: Each service file (`IssueService.gs`, `SetupService.gs`, `Utils.gs`, `ValidationService.gs`,
-`ArchiveService.gs`, `SearchService.gs`) defines a single global `const` bound to an IIFE that returns a public
-API object, e.g.:
+`ArchiveService.gs`, `SearchService.gs`, `DashboardService.gs`) defines a single global `const` bound to an IIFE
+that returns a public API object, e.g.:
 
 ```js
 const IssueService = (() => {
@@ -74,17 +74,19 @@ Reproducibility, each with a `column` letter that must match the corresponding `
 `CONFIG.VALIDATION`), default field templates (`CONFIG.TEMPLATES`), script property keys, and menu labels. Any
 code touching a specific column must go through `CONFIG.COLUMNS.*` rather than a hard-coded index.
 
-**`Utils.gs` is the one canonical utility layer** — `getIssuesSheet()`/`getArchiveSheet()`/`getSheet()`,
-`scriptProperties()`, `nextBugId()`, `currentUser()`, `now()`, `formatIssueRow()`, `focusTitle()`, `touch()`,
-`columnLetterToNumber()`. All services (`IssueService`, `SetupService`, `ValidationService`) call through
-`Utils.*` — don't reintroduce a second implementation of something that already lives there (this happened once
-already with duplicate globals in Config.gs, and once more with a private `columnLetterToNumber` in
-`ValidationService.gs`; both were removed in favor of the `Utils` version).
+**`Utils.gs` is the one canonical utility layer** — `getIssuesSheet()`/`getArchiveSheet()`/`getSheet()`/
+`ensureSheet()`, `readDataRows()`, `scriptProperties()`, `nextBugId()`, `currentUser()`, `now()`,
+`formatIssueRow()`, `focusTitle()`, `touch()`, `columnLetterToNumber()`. Every service calls through `Utils.*` —
+don't reintroduce a second implementation of something that already lives there. This has happened three times
+already: duplicate globals in Config.gs, a private `columnLetterToNumber` in `ValidationService.gs`, and separate
+"get-or-create a sheet" / "read all data rows" logic duplicated across `SetupService`, `ArchiveService`, and
+`SearchService` before being consolidated into `Utils.ensureSheet()` / `Utils.readDataRows()`.
 
 **Entry points and triggers**:
 - `Code.gs` — `onOpen()` builds the "QA Tools" custom menu; menu items dispatch to `addNewIssue()`,
-  `initializeWorkbook()`, `showSearch()`, and `archiveClosed()`. All four wrap their real work in try/catch and
-  surface failures via `SpreadsheetApp.getUi().alert(...)` rather than letting exceptions go uncaught.
+  `initializeWorkbook()`, `showSearch()`, `archiveClosed()`, and `refreshDashboard()`. All wrap their real work in
+  try/catch and surface failures via `SpreadsheetApp.getUi().alert(...)` rather than letting exceptions go
+  uncaught.
 - `TriggerService.gs` — `onEdit(e)` is a simple trigger that stamps `LAST_UPDATED` whenever a cell in the
   `Issues` sheet (at or below `CONFIG.FIRST_DATA_ROW`) is edited, ignoring edits to the `LAST_UPDATED` column
   itself to avoid recursive updates.
@@ -103,6 +105,15 @@ already with duplicate globals in Config.gs, and once more with a private `colum
 - `SearchService.search()` — prompts for a keyword via `ui.prompt`, checks it case-insensitively against Bug ID/
   Title/Description/Keywords (`SEARCH_COLUMNS`), and jumps to the first matching row via `setActiveRange`. The
   underlying `findMatches(term)` is exposed separately and returns all matching row numbers, not just the first.
+- `DashboardService.refresh()` — rebuilds the `Dashboard` sheet from scratch on every call: `sheet.clear()` +
+  removes any existing embedded charts (`getCharts()`/`removeChart()`) before rewriting, so it's always safe to
+  re-run and never accumulates stale charts. Writes three breakdown tables+charts (Issues by Status/Priority/
+  Severity, via `countByColumn`), a weekly throughput table+chart (issues created vs. closed, via `countByWeek`),
+  and a stale-issues list (open, non-Closed issues whose `LAST_UPDATED` is `CONFIG.DASHBOARD.STALE_DAYS`+ old).
+  Tables stack in columns A-B; charts stack independently in column E (`CHART_ROW_SPAN` apart) so a tall chart
+  never overlaps the next table — the two layouts don't share a row counter. "Closed date" isn't a real field
+  QAHub tracks, so weekly throughput approximates it as an archived issue's `LAST_UPDATED` (whatever it was when
+  `ArchiveService` moved the row) — accurate as long as issues get archived reasonably soon after closing.
 
 **Row shape**: A new issue is a fixed-width row built by writing directly into a sparse `values[]` array indexed
 by `CONFIG.COLUMNS.* - 1` (see `IssueService.createIssue`). When adding a column, update `CONFIG.COLUMNS` —
