@@ -23,6 +23,7 @@ function onOpen() {
     .addItem(CONFIG.MENU.ARCHIVE, 'archiveClosed')
     .addSeparator()
     .addItem(CONFIG.MENU.DASHBOARD, 'refreshDashboard')
+    .addItem(CONFIG.MENU.REPORT, 'generateReport')
     .addToUi();
 
 }
@@ -112,6 +113,29 @@ function refreshDashboard() {
 
     SpreadsheetApp.getUi().alert(
       'Unable to refresh the dashboard.\n\n' + error.message
+    );
+
+    console.error(error);
+
+  }
+
+}
+
+/**
+ * Generates a status report Doc and reports its URL.
+ */
+function generateReport() {
+
+  try {
+
+    const url = ReportService.generate();
+
+    SpreadsheetApp.getUi().alert(`Report generated:\n\n${url}`);
+
+  } catch (error) {
+
+    SpreadsheetApp.getUi().alert(
+      'Unable to generate the report.\n\n' + error.message
     );
 
     console.error(error);

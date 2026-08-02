@@ -8,8 +8,6 @@
 
 const DashboardService = (() => {
 
-  const MS_PER_DAY = 24 * 60 * 60 * 1000;
-
   // Tables stack in columns A-B; charts stack independently in column E so a
   // tall chart never overlaps the next table.
   const TABLE_COLUMN = 1;
@@ -67,7 +65,7 @@ const DashboardService = (() => {
       .setFontSize(14);
 
     sheet.getRange(2, TABLE_COLUMN)
-      .setValue(`Last refreshed: ${formatDateLabel(Utils.now())}`);
+      .setValue(`Last refreshed: ${Utils.formatDateLabel(Utils.now())}`);
 
     return 4;
 
@@ -226,7 +224,7 @@ const DashboardService = (() => {
         status: row[CONFIG.COLUMNS.STATUS - 1],
         lastUpdated: row[CONFIG.COLUMNS.LAST_UPDATED - 1],
         daysSinceUpdate: row[CONFIG.COLUMNS.LAST_UPDATED - 1]
-          ? Math.floor((now - row[CONFIG.COLUMNS.LAST_UPDATED - 1]) / MS_PER_DAY)
+          ? Utils.daysSince(row[CONFIG.COLUMNS.LAST_UPDATED - 1], now)
           : null
       }))
       .filter(issue => issue.daysSinceUpdate !== null && issue.daysSinceUpdate >= CONFIG.DASHBOARD.STALE_DAYS)
@@ -282,16 +280,8 @@ const DashboardService = (() => {
 
   }
 
-  function formatDateLabel(date) {
-
-    const pad = n => String(n).padStart(2, '0');
-
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-
-  }
-
   function weekLabel(date) {
-    return formatDateLabel(startOfWeek(date));
+    return Utils.formatDateLabel(startOfWeek(date));
   }
 
   return {

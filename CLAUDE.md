@@ -54,8 +54,8 @@ inside the loaded `.gs` code is not `instanceof` the outer test file's `Date`. C
 ## Architecture
 
 **Module pattern**: Each service file (`IssueService.gs`, `SetupService.gs`, `Utils.gs`, `ValidationService.gs`,
-`ArchiveService.gs`, `SearchService.gs`, `DashboardService.gs`) defines a single global `const` bound to an IIFE
-that returns a public API object, e.g.:
+`ArchiveService.gs`, `SearchService.gs`, `DashboardService.gs`, `ReportService.gs`) defines a single global
+`const` bound to an IIFE that returns a public API object, e.g.:
 
 ```js
 const IssueService = (() => {
@@ -76,17 +76,18 @@ code touching a specific column must go through `CONFIG.COLUMNS.*` rather than a
 
 **`Utils.gs` is the one canonical utility layer** — `getIssuesSheet()`/`getArchiveSheet()`/`getSheet()`/
 `ensureSheet()`, `readDataRows()`, `scriptProperties()`, `nextBugId()`, `currentUser()`, `now()`,
-`formatIssueRow()`, `focusTitle()`, `touch()`, `columnLetterToNumber()`. Every service calls through `Utils.*` —
-don't reintroduce a second implementation of something that already lives there. This has happened three times
-already: duplicate globals in Config.gs, a private `columnLetterToNumber` in `ValidationService.gs`, and separate
-"get-or-create a sheet" / "read all data rows" logic duplicated across `SetupService`, `ArchiveService`, and
-`SearchService` before being consolidated into `Utils.ensureSheet()` / `Utils.readDataRows()`.
+`formatIssueRow()`, `focusTitle()`, `touch()`, `daysSince()`, `formatDateLabel()`, `columnLetterToNumber()`.
+Every service calls through `Utils.*` — don't reintroduce a second implementation of something that already
+lives there. This has happened repeatedly: duplicate globals in Config.gs, a private `columnLetterToNumber` in
+`ValidationService.gs`, "get-or-create a sheet" / "read all data rows" duplicated across `SetupService`,
+`ArchiveService`, and `SearchService`, and a private date-math/formatting pair in `DashboardService` that
+`ReportService` also needed — all consolidated into `Utils.*` versions.
 
 **Entry points and triggers**:
 - `Code.gs` — `onOpen()` builds the "QA Tools" custom menu; menu items dispatch to `addNewIssue()`,
-  `initializeWorkbook()`, `showSearch()`, `archiveClosed()`, and `refreshDashboard()`. All wrap their real work in
-  try/catch and surface failures via `SpreadsheetApp.getUi().alert(...)` rather than letting exceptions go
-  uncaught.
+  `initializeWorkbook()`, `showSearch()`, `archiveClosed()`, `refreshDashboard()`, and `generateReport()`. All
+  wrap their real work in try/catch and surface failures via `SpreadsheetApp.getUi().alert(...)` rather than
+  letting exceptions go uncaught.
 - `TriggerService.gs` — `onEdit(e)` is a simple trigger that stamps `LAST_UPDATED` whenever a cell in the
   `Issues` sheet (at or below `CONFIG.FIRST_DATA_ROW`) is edited, ignoring edits to the `LAST_UPDATED` column
   itself to avoid recursive updates. It also stamps `CLOSED_DATE` when the edited column is `STATUS` and the new
@@ -116,6 +117,26 @@ already: duplicate globals in Config.gs, a private `columnLetterToNumber` in `Va
   never overlaps the next table — the two layouts don't share a row counter. Weekly throughput's "closed" count
   comes from `CLOSED_DATE` (see `TriggerService` above); archived issues that predate that column just don't
   count toward "closed" since there's no data to infer it from.
+- `ReportService.generate()` — builds a point-in-time status report as a new Google Doc (via `DocumentApp`),
+  placed in the same Drive folder as the spreadsheet (`moveToSpreadsheetFolder`; Docs are created at Drive's root
+  by default, so this explicitly re-parents the file — a no-op if the spreadsheet itself has no parent folder).
+  `buildReportData(now)` is the pure computation half (no UI, no Doc) and is what's actually worth reading to
+  understand the report's content:
+  - **Critical+ Issues Still Open** — open (non-Closed) Issues rows at or above `CONFIG.REPORT.CRITICAL_THRESHOLD`
+    severity (`isCriticalOrHigher`, ranked by position in `CONFIG.LISTS.SEVERITY.values`), with raw Notes text
+    included verbatim — deliberately no AI/keyword parsing of *why* an issue is stuck; that's judged unreliable
+    for free text and was explicitly ruled out in favor of just showing what the person wrote.
+  - **Critical+ Found & Fixed** — critical+ issues (from Issues *and* Archive) where *both* Created Date and
+    Closed Date fall within `CONFIG.REPORT.LOOKBACK_DAYS` — i.e. the same issue was opened and resolved inside
+    one lookback window, not just "closed recently regardless of age" (a deliberate narrower reading, chosen over
+    two separate found/fixed lists).
+  - **Backlog** — count of open issues whose Status is neither `In Progress` nor `Closed`.
+  - **Throughput** — total created/closed counts (all severities) within the lookback window, reusing the same
+    `CLOSED_DATE`-based logic as `DashboardService`.
+  - **Quality status** — `suggestQualityStatus()` proposes Red (any open Critical+) / Yellow (open High, or an
+    open issue stale past `CONFIG.DASHBOARD.STALE_DAYS`) / Green, shown to the user via `ui.prompt` alongside an
+    optional free-text comment; the report always shows both the computed suggestion and the human comment side
+    by side rather than letting the comment silently overwrite the computed label.
 
 **Row shape**: A new issue is a fixed-width row built by writing directly into a sparse `values[]` array indexed
 by `CONFIG.COLUMNS.* - 1` (see `IssueService.createIssue`). When adding a column, update `CONFIG.COLUMNS` —
