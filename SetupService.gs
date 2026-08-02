@@ -19,13 +19,12 @@ const SetupService = (() => {
    */
   function initializeWorkbook() {
 
-    const spreadsheet = Utils.spreadsheet();
+    const issuesSheet = Utils.ensureSheet(CONFIG.SHEETS.ISSUES);
+    const archiveSheet = Utils.ensureSheet(CONFIG.SHEETS.ARCHIVE);
+    const listsSheet = Utils.ensureSheet(CONFIG.SHEETS.LISTS);
 
-    const issuesSheet = ensureSheet(spreadsheet, CONFIG.SHEETS.ISSUES);
-    const archiveSheet = ensureSheet(spreadsheet, CONFIG.SHEETS.ARCHIVE);
-    const listsSheet = ensureSheet(spreadsheet, CONFIG.SHEETS.LISTS);
-
-    ensureSheet(spreadsheet, CONFIG.SHEETS.SETTINGS);
+    Utils.ensureSheet(CONFIG.SHEETS.SETTINGS);
+    Utils.ensureSheet(CONFIG.SHEETS.DASHBOARD);
 
     writeHeaders(issuesSheet);
     writeHeaders(archiveSheet);
@@ -42,13 +41,6 @@ const SetupService = (() => {
 
     ValidationService.initialize();
 
-  }
-
-  /**
-   * Returns the named sheet, creating it if it doesn't exist yet.
-   */
-  function ensureSheet(spreadsheet, name) {
-    return spreadsheet.getSheetByName(name) || spreadsheet.insertSheet(name);
   }
 
   /**
