@@ -1,1 +1,6 @@
 node_modules/
+
+# Points at a specific deployer's Google Sheet + Apps Script project
+# (scriptId/parentId) — created locally via `npm run create` or `clasp
+# clone`, not something a shared repo should carry.
+.clasp.json
