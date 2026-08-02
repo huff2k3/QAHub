@@ -88,14 +88,24 @@ const SetupService = (() => {
   }
 
   /**
-   * Enable filters.
+   * (Re)creates the sheet's filter over the full current column range.
+   *
+   * Removes any existing filter first — a filter's range doesn't grow on
+   * its own when a new column is added to CONFIG.COLUMNS, so on re-run
+   * this is what actually extends the filter to cover it. Recreating
+   * clears any filter criteria the user had set, same tradeoff as
+   * initializeWorkbook resetting headers/Lists on re-run.
    */
   function enableFilters(sheet) {
 
-    if (!sheet.getFilter()) {
-      sheet.getRange(1, 1, sheet.getMaxRows(), sheet.getLastColumn())
-           .createFilter();
+    const existingFilter = sheet.getFilter();
+
+    if (existingFilter) {
+      existingFilter.remove();
     }
+
+    sheet.getRange(1, 1, sheet.getMaxRows(), sheet.getLastColumn())
+         .createFilter();
 
   }
 

@@ -71,6 +71,10 @@ function createSheet(name, overrides = {}) {
 
 }
 
+function createFilter() {
+  return { remove: jest.fn() };
+}
+
 function createDataValidationBuilder() {
 
   const builder = {};
@@ -166,6 +170,7 @@ function createSession(email = 'tester@example.com') {
 module.exports = {
   createRange,
   createSheet,
+  createFilter,
   createUi,
   createSpreadsheetApp,
   createPropertiesService,
