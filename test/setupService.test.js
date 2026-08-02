@@ -3,7 +3,9 @@ const {
   createSpreadsheetApp,
   createPropertiesService,
   createLockService,
-  createSession
+  createSession,
+  createSheet,
+  createFilter
 } = require('./support/mockGasHost');
 
 function setup(existingSheets = {}) {
@@ -155,8 +157,6 @@ describe('SetupService.initializeWorkbook re-run', () => {
 
   test('reuses existing sheets instead of creating duplicates', () => {
 
-    const { createSheet } = require('./support/mockGasHost');
-
     const existingIssues = createSheet('Issues');
 
     const { SetupService, sheetsByName, CONFIG } = setup({ Issues: existingIssues });
@@ -164,6 +164,33 @@ describe('SetupService.initializeWorkbook re-run', () => {
     SetupService.initializeWorkbook();
 
     expect(sheetsByName[CONFIG.SHEETS.ISSUES]).toBe(existingIssues);
+
+  });
+
+  test('recreates an existing filter so it covers newly added columns', () => {
+
+    // Simulates a sheet whose filter was created back when there were fewer
+    // columns (e.g. before Closed Date was added) — the filter object itself
+    // doesn't grow when CONFIG.COLUMNS grows, so a stale filter must be
+    // replaced, not left alone.
+    const existingFilter = createFilter();
+
+    const existingIssues = createSheet('Issues', {
+      getFilter: jest.fn(() => existingFilter),
+      getLastColumn: jest.fn(() => 16) // stale — one short of the current 17
+    });
+
+    const { SetupService, sheetsByName, CONFIG } = setup({ Issues: existingIssues });
+
+    SetupService.initializeWorkbook();
+
+    expect(existingFilter.remove).toHaveBeenCalled();
+
+    const issuesSheet = sheetsByName[CONFIG.SHEETS.ISSUES];
+
+    const filterRangeCall = issuesSheet.range.createFilter.mock.calls.length > 0;
+
+    expect(filterRangeCall).toBe(true);
 
   });
 
