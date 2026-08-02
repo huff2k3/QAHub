@@ -12,15 +12,16 @@ describe('IssueService.createIssue', () => {
   function setup() {
 
     const issuesSheet = createSheet('Issues');
+    const listsSheet = createSheet('Lists');
 
     const project = loadGasProject({
-      SpreadsheetApp: createSpreadsheetApp({ Issues: issuesSheet }),
+      SpreadsheetApp: createSpreadsheetApp({ Issues: issuesSheet, Lists: listsSheet }),
       PropertiesService: createPropertiesService(),
       LockService: createLockService(),
       Session: createSession('creator@example.com')
     });
 
-    return { ...project, issuesSheet };
+    return { ...project, issuesSheet, listsSheet };
 
   }
 
@@ -75,6 +76,26 @@ describe('IssueService.createIssue', () => {
     const secondBugId = sharedRange.setValues.mock.calls[1][0][0][CONFIG.COLUMNS.BUG_ID - 1];
 
     expect(secondBugId).toBe(firstBugId + 1);
+
+  });
+
+  test('applies dropdown validation to the new row for every configured column', () => {
+
+    const { IssueService, issuesSheet, CONFIG } = setup();
+
+    IssueService.createIssue();
+
+    const validationCalls = issuesSheet.getRange.mock.calls.filter(
+      call => call[0] === CONFIG.FIRST_DATA_ROW && call.length === 4 && call[3] === 1
+    );
+
+    const validatedColumns = validationCalls.map(call => call[1]).sort((a, b) => a - b);
+
+    const expectedColumns = Object.values(CONFIG.VALIDATION)
+      .map(v => v.issueColumn.charCodeAt(0) - 64)
+      .sort((a, b) => a - b);
+
+    expect(validatedColumns).toEqual(expectedColumns);
 
   });
 
