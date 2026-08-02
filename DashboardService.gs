@@ -144,16 +144,17 @@ const DashboardService = (() => {
   }
 
   /**
-   * Writes a weekly "issues created vs. issues closed" table + chart.
-   * "Closed" is approximated as an archived issue's Last Updated date,
-   * since QAHub doesn't track a separate closed-date field.
+   * Writes a weekly "issues created vs. issues closed" table + chart, using
+   * each archived issue's Closed Date (stamped by TriggerService the moment
+   * Status is set to Closed). Archived issues that predate the Closed Date
+   * column just don't count toward "closed" — there's no data to infer it from.
    */
   function writeThroughputSection(sheet, tableRow, chartRow, openRows, closedRows) {
 
     const title = 'Weekly Throughput (Created vs. Closed)';
 
     const created = countByWeek(openRows.concat(closedRows), CONFIG.COLUMNS.CREATED_DATE);
-    const closed = countByWeek(closedRows, CONFIG.COLUMNS.LAST_UPDATED);
+    const closed = countByWeek(closedRows, CONFIG.COLUMNS.CLOSED_DATE);
 
     const weeks = Array.from(
       new Set([...Object.keys(created), ...Object.keys(closed)])
