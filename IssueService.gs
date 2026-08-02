@@ -52,6 +52,8 @@ const IssueService = (() => {
 
     Utils.formatIssueRow(sheet, row);
 
+    ValidationService.applyToRow(sheet, row);
+
     Utils.focusTitle(sheet, row);
 
   }
