@@ -122,3 +122,9 @@ by `CONFIG.COLUMNS.* - 1` (see `IssueService.createIssue`). When adding a column
 `Utils.formatIssueRow` and `SetupService.formatHeader` both derive the column count from
 `Object.keys(CONFIG.COLUMNS).length`, so they stay in sync automatically.
 
+**New rows need their own dropdown validation** — `sheet.insertRowBefore()` doesn't inherit useful data
+validation from the header row above it, so `IssueService.createIssue()` explicitly calls
+`ValidationService.applyToRow(sheet, row)` after writing values. This was missing for a while (new issues had no
+Status/Priority/Severity/Reproducibility dropdowns at all until a full `Initialize Workbook` re-run) — if you see
+that regress again, this is the first place to check.
+
