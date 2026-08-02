@@ -44,6 +44,7 @@ const IssueService = (() => {
     values[CONFIG.COLUMNS.KEYWORDS - 1] = '';
     values[CONFIG.COLUMNS.SCREENSHOT - 1] = '';
     values[CONFIG.COLUMNS.NOTES - 1] = '';
+    values[CONFIG.COLUMNS.CLOSED_DATE - 1] = '';
 
     sheet
       .getRange(row, 1, 1, values.length)

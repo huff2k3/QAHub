@@ -140,7 +140,8 @@ const SetupService = (() => {
       13: 120,
       14: 200,
       15: 250,
-      16: 300
+      16: 300,
+      17: 150
     };
 
     Object.keys(widths).forEach(column => {

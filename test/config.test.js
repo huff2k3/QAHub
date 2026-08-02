@@ -31,15 +31,23 @@ describe('CONFIG', () => {
     expect(CONFIG.VALIDATION.REPRODUCIBILITY).toEqual({ issueColumn: 'H', listColumn: 'D' });
   });
 
-  test('COLUMNS covers all 16 fields with unique 1-based indexes', () => {
+  test('COLUMNS covers all 17 fields with unique, contiguous 1-based indexes', () => {
     const { CONFIG } = load();
 
     const indexes = Object.values(CONFIG.COLUMNS);
 
-    expect(indexes).toHaveLength(16);
-    expect(new Set(indexes).size).toBe(16);
+    expect(indexes).toHaveLength(17);
+    expect(new Set(indexes).size).toBe(17);
     expect(Math.min(...indexes)).toBe(1);
-    expect(Math.max(...indexes)).toBe(16);
+    expect(Math.max(...indexes)).toBe(17);
+  });
+
+  test('every COLUMNS key has a matching HEADERS label', () => {
+    const { CONFIG } = load();
+
+    Object.keys(CONFIG.COLUMNS).forEach(key => {
+      expect(typeof CONFIG.HEADERS[key]).toBe('string');
+    });
   });
 
 });

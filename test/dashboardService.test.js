@@ -19,6 +19,7 @@ function buildIssueRow(CONFIG, overrides = {}) {
   row[CONFIG.COLUMNS.TITLE - 1] = overrides.title || '';
   row[CONFIG.COLUMNS.CREATED_DATE - 1] = overrides.createdDate || '';
   row[CONFIG.COLUMNS.LAST_UPDATED - 1] = overrides.lastUpdated || '';
+  row[CONFIG.COLUMNS.CLOSED_DATE - 1] = overrides.closedDate || '';
 
   return row;
 
@@ -155,6 +156,42 @@ describe('DashboardService.refresh', () => {
     const staleTitles = staleTableCall[0].map(r => r[1]);
 
     expect(staleTitles).toEqual(['Oldest', 'Old']);
+
+  });
+
+  test('throughput buckets "closed" by Closed Date, not Last Updated', () => {
+
+    const { DashboardService, archiveSheet, dashboardSheet, CONFIG } = setup();
+
+    // Deliberately different weeks, so a regression back to using
+    // Last Updated (a later, unrelated edit) would show up in the wrong week.
+    const closedDate = new Date(2026, 0, 5);   // Mon Jan 5 2026 -> week of 2026-01-04
+    const lastUpdated = new Date(2026, 0, 19); // a later, unrelated edit
+
+    const rows = [
+      buildIssueRow(CONFIG, {
+        bugId: 1,
+        status: CONFIG.STATUS.CLOSED,
+        createdDate: new Date(2026, 0, 1),
+        closedDate,
+        lastUpdated
+      })
+    ];
+
+    archiveSheet.getLastRow = jest.fn(() => CONFIG.FIRST_DATA_ROW + rows.length - 1);
+    archiveSheet.range.getValues.mockReturnValue(rows);
+
+    DashboardService.refresh();
+
+    const throughputDataCall = dashboardSheet.range.setValues.mock.calls.find(
+      call => Array.isArray(call[0]) && call[0].some(r => r.length === 3 && r[2] === 1)
+    );
+
+    expect(throughputDataCall).toBeDefined();
+
+    const closedRow = throughputDataCall[0].find(r => r[2] === 1);
+
+    expect(closedRow[0]).toBe('2026-01-04');
 
   });
 
