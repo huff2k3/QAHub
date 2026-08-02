@@ -9,18 +9,82 @@
 const SetupService = (() => {
 
   /**
-   * Initializes the workbook.
+   * Builds a fresh workbook: creates the Issues/Archive/Lists/Settings
+   * sheets if missing, writes headers, seeds the Lists reference values,
+   * formats the Issues and Archive sheets, and applies data validation.
+   *
+   * Safe to re-run: re-running resets headers and Lists values back to the
+   * configured defaults (overwriting any manual edits to those specifically),
+   * but never touches issue data rows.
    */
   function initializeWorkbook() {
 
-    const sheet = Utils.getIssuesSheet();
+    const spreadsheet = Utils.spreadsheet();
 
-    freezeHeader(sheet);
-    enableFilters(sheet);
-    formatHeader(sheet);
-    autoResize(sheet);
+    const issuesSheet = ensureSheet(spreadsheet, CONFIG.SHEETS.ISSUES);
+    const archiveSheet = ensureSheet(spreadsheet, CONFIG.SHEETS.ARCHIVE);
+    const listsSheet = ensureSheet(spreadsheet, CONFIG.SHEETS.LISTS);
+
+    ensureSheet(spreadsheet, CONFIG.SHEETS.SETTINGS);
+
+    writeHeaders(issuesSheet);
+    writeHeaders(archiveSheet);
+    seedLists(listsSheet);
+
+    [issuesSheet, archiveSheet].forEach(sheet => {
+
+      freezeHeader(sheet);
+      enableFilters(sheet);
+      formatHeader(sheet);
+      autoResize(sheet);
+
+    });
 
     ValidationService.initialize();
+
+  }
+
+  /**
+   * Returns the named sheet, creating it if it doesn't exist yet.
+   */
+  function ensureSheet(spreadsheet, name) {
+    return spreadsheet.getSheetByName(name) || spreadsheet.insertSheet(name);
+  }
+
+  /**
+   * Writes the Issues column headers, in CONFIG.COLUMNS order.
+   */
+  function writeHeaders(sheet) {
+
+    const headers = Object.keys(CONFIG.COLUMNS)
+      .sort((a, b) => CONFIG.COLUMNS[a] - CONFIG.COLUMNS[b])
+      .map(key => CONFIG.HEADERS[key]);
+
+    sheet
+      .getRange(CONFIG.HEADER_ROW, 1, 1, headers.length)
+      .setValues([headers]);
+
+  }
+
+  /**
+   * Writes each configured reference list's header and values onto the
+   * Lists sheet, in the column CONFIG.VALIDATION expects it in.
+   */
+  function seedLists(sheet) {
+
+    Object.values(CONFIG.LISTS).forEach(list => {
+
+      const column = Utils.columnLetterToNumber(list.column);
+
+      sheet
+        .getRange(CONFIG.HEADER_ROW, column)
+        .setValue(list.header);
+
+      sheet
+        .getRange(CONFIG.FIRST_DATA_ROW, column, list.values.length, 1)
+        .setValues(list.values.map(value => [value]));
+
+    });
 
   }
 

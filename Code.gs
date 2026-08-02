@@ -49,29 +49,51 @@ function addNewIssue() {
 
 
 /**
- * Opens the Search dialog.
- *
- * Placeholder until SearchService is implemented.
+ * Prompts for a keyword and jumps to the first matching issue.
  */
 function showSearch() {
 
-  SpreadsheetApp.getUi().alert(
-    'Search is coming in Version 1.1.'
-  );
+  try {
+
+    SearchService.search();
+
+  } catch (error) {
+
+    SpreadsheetApp.getUi().alert(
+      'Unable to search issues.\n\n' + error.message
+    );
+
+    console.error(error);
+
+  }
 
 }
 
 
 /**
- * Archives closed issues.
- *
- * Placeholder until ArchiveService is implemented.
+ * Moves every Closed issue onto the Archive sheet.
  */
 function archiveClosed() {
 
-  SpreadsheetApp.getUi().alert(
-    'Archive is coming in Version 1.1.'
-  );
+  try {
+
+    const count = ArchiveService.archiveClosed();
+
+    SpreadsheetApp.getUi().alert(
+      count === 0
+        ? 'No closed issues to archive.'
+        : `Archived ${count} closed issue${count === 1 ? '' : 's'}.`
+    );
+
+  } catch (error) {
+
+    SpreadsheetApp.getUi().alert(
+      'Unable to archive closed issues.\n\n' + error.message
+    );
+
+    console.error(error);
+
+  }
 
 }
 

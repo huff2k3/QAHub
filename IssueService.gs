@@ -13,22 +13,18 @@ const IssueService = (() => {
    */
   function createIssue() {
 
-    const sheet = getIssuesSheet();
-
-    if (!sheet) {
-      throw new Error('Issues sheet not found.');
-    }
+    const sheet = Utils.getIssuesSheet();
 
     // Insert a new row directly beneath the header.
     sheet.insertRowBefore(CONFIG.FIRST_DATA_ROW);
 
     const row = CONFIG.FIRST_DATA_ROW;
 
-    const now = new Date();
+    const now = Utils.now();
 
-    const bugId = getNextBugId();
+    const bugId = Utils.nextBugId();
 
-    const creator = getCurrentUser();
+    const creator = Utils.currentUser();
 
     const values = [];
 
@@ -53,59 +49,9 @@ const IssueService = (() => {
       .getRange(row, 1, 1, values.length)
       .setValues([values]);
 
-    formatIssueRow(sheet, row);
+    Utils.formatIssueRow(sheet, row);
 
-    // Put the cursor in the Title field.
-    sheet.setActiveRange(
-      sheet.getRange(
-        row,
-        CONFIG.COLUMNS.TITLE
-      )
-    );
-
-  }
-
-  /**
-   * Applies formatting to a newly created issue.
-   */
-  function formatIssueRow(sheet, row) {
-
-    sheet
-      .getRange(row, CONFIG.COLUMNS.CREATED_DATE)
-      .setNumberFormat("M/d/yyyy h:mm AM/PM");
-
-    sheet
-      .getRange(row, CONFIG.COLUMNS.LAST_UPDATED)
-      .setNumberFormat("M/d/yyyy h:mm AM/PM");
-
-    sheet
-      .getRange(row, 1, 1, 16)
-      .setVerticalAlignment("top");
-
-    sheet
-      .getRange(row, 1, 1, 16)
-      .setWrap(true);
-
-  }
-
-  /**
-   * Attempts to determine the current user.
-   */
-  function getCurrentUser() {
-
-    try {
-
-      const email = Session.getActiveUser().getEmail();
-
-      if (email) {
-        return email;
-      }
-
-    } catch (e) {
-      // Ignore.
-    }
-
-    return '';
+    Utils.focusTitle(sheet, row);
 
   }
 
